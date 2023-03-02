@@ -1,36 +1,33 @@
 package config
 
 import (
-	types "github.com/TechBuilder-360/portfolio-v2-backend/internal/common"
+	"github.com/TechBuilder-360/portfolio-v2-backend/internal/common/types"
 	"go.deanishe.net/env"
+	"strings"
 )
 
 const (
-	PRODUCTION types.ENVIRONMENT = "Production"
-	SANDBOX    types.ENVIRONMENT = "SandBox"
+	ProductionEnv types.ENVIRONMENT = "production"
+	SandboxEnv    types.ENVIRONMENT = "sandbox"
 )
 
 var Instance *Config
 
 type Config struct {
-	AppName       string            `env:"APP_NAME"`
-	Namespace     string            `env:"NAMESPACE"`
-	Host          string            `env:"BASE_URL"`
-	Issuer        string            `env:"PORT"`
-	Environment   types.ENVIRONMENT `env:"ENVIRONMENT"`
-	Secret        string            `env:"SECRET"`
-	URLPrefix     string            `env:"ISSUER"`
-	TOKENLIFESPAN uint              `env:"TOKEN_LIFE_SPAN"`
-
-	DbName string `env:"DB_NAME"`
-	DbUser string `env:"DB_USER"`
-	DbPass string `env:"DB_PASS"`
-	DbHost string `env:"DB_HOST"`
-	DbPort uint   `env:"DB_PORT"`
-
-	RedisURL      string `env:"REDIS_URL"`
-	RedisPassword string `env:"REDIS_PASSWORD"`
-
+	AppName           string `env:"APP_NAME"`
+	Namespace         string `env:"NAMESPACE"`
+	Host              string `env:"HOST"`
+	Env               string `env:"ENVIRONMENT"`
+	SecretKey         string `env:"SECRET_KEY"`
+	TOKENLIFESPAN     uint   `env:"TOKEN_LIFE_SPAN"`
+	DbName            string `env:"DB_NAME"`
+	DbUser            string `env:"DB_USER"`
+	DbPass            string `env:"DB_PASS"`
+	DbHost            string `env:"DB_HOST"`
+	DbPort            uint   `env:"DB_PORT"`
+	DbURL             string `env:"DB_URL"`
+	RedisURL          string `env:"REDIS_URL"`
+	RedisPassword     string `env:"REDIS_PASSWORD"`
 	SendGridAPIKey    string `env:"SENDGRID_API_KEY"`
 	SendGridFromEmail string `env:"SEND_GRID_FROM_EMAIL"`
 }
@@ -44,6 +41,6 @@ func Load() {
 	return
 }
 
-func GetEnv() types.ENVIRONMENT {
-	return Instance.Environment
+func (c *Config) GetEnv() types.ENVIRONMENT {
+	return types.ENVIRONMENT(strings.ToLower(Instance.Env))
 }
