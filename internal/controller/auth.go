@@ -105,5 +105,5 @@ func (ctl *authController) Login(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, response.DataResponse("Registration successful", res))
+	ctx.JSON(http.StatusCreated, response.DataResponse("Successful", res))
 }
