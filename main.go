@@ -1,6 +1,7 @@
 package main
 
 import (
+	docs "github.com/TechBuilder-360/portfolio-v2-backend/docs"
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/config"
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/database"
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/database/redis"
@@ -8,7 +9,6 @@ import (
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/router"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"github.com/swaggo/gin-swagger/example/basic/docs"
 	"os"
 	"time"
 )
@@ -19,8 +19,6 @@ func Init() {
 
 	// Only log the warning severity or above.
 	log.SetLevel(log.InfoLevel)
-
-	config.Load()
 }
 
 // @title           ORIS API
@@ -36,12 +34,19 @@ func Init() {
 // @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 func main() {
 
+	config.Load()
 	configureSwagger()
 	Init()
 
-	docs.SwaggerInfo_swagger.Host = config.Instance.Host
+	if config.Instance.GetEnv() != config.SandboxEnv {
+		gin.SetMode(gin.ReleaseMode)
+	}
 
 	dbConnection := database.ConnectDB(config.Instance.DbURL)
+	err := database.MigrateAll(dbConnection)
+	if err != nil {
+		log.Error(err.Error())
+	}
 	//  set connection pool
 	sqlDB, _ := dbConnection.DB()
 
@@ -62,10 +67,10 @@ func main() {
 		}
 	}()
 
-	redis.NewClient(config.Instance.RedisURL, config.Instance.RedisPassword, config.Instance.Namespace, nil)
+	redis.NewClient(config.Instance.RedisURL, config.Instance.RedisPassword, config.Instance.Namespace)
 
 	r := gin.New()
-	r.Use(gin.Recovery())
+	setupSystemRouteHandler(r)
 	router.SetUpRoutes(r)
 
 	r.Run() // listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
@@ -79,10 +84,10 @@ func setupSystemRouteHandler(router *gin.Engine) {
 }
 
 func configureSwagger() {
-	docs.SwaggerInfo_swagger.Title = "ORIS API"
-	docs.SwaggerInfo_swagger.Description = "This documentation contains url path description for Oris APIs"
-	docs.SwaggerInfo_swagger.Version = "1.0"
-	docs.SwaggerInfo_swagger.Host = config.Instance.Host
-	docs.SwaggerInfo_swagger.BasePath = "/v1"
-	docs.SwaggerInfo_swagger.Schemes = []string{"http", "https"}
+	docs.SwaggerInfo.Title = "ORIS API"
+	docs.SwaggerInfo.Description = "This documentation contains url path description for Oris APIs"
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = config.Instance.Host
+	docs.SwaggerInfo.BasePath = "/v1"
+	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 }

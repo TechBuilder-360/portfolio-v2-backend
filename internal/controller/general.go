@@ -44,8 +44,7 @@ func (ctl *generalController) Health(ctx *gin.Context) {
 }
 
 func (ctl *generalController) Welcome(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, response.SuccessResponse("Welcome to Oris API",
-		&WelcomeResponse{Service: "oris-api", Env: config.Instance.Env, Version: "1.0.0", Date: time.Now()},
-		nil),
+	ctx.JSON(http.StatusOK, response.DataResponse("Welcome to Oris API",
+		&WelcomeResponse{Service: "oris-api", Env: config.Instance.Env, Version: "1.0.0", Date: time.Now()}),
 	)
 }
