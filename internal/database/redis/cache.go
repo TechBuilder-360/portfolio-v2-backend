@@ -29,10 +29,10 @@ func WithTTL(t time.Duration) Param {
 }
 
 var redisClient *Client
-var ctx context.Context
+var ctx = context.Background()
 
 // NewClient is a client constructor.
-func NewClient(connectionURL, password, namespace string, params ...Param) *Client {
+func NewClient(connectionURL, password, namespace string) *Client {
 	log.Info("connecting to redis client")
 
 	c := redis.NewClient(&redis.Options{
@@ -53,10 +53,6 @@ func NewClient(connectionURL, password, namespace string, params ...Param) *Clie
 		Client:    c,
 		ttl:       defaultExpirationTime,
 		namespace: namespace,
-	}
-
-	for _, applyParam := range params {
-		applyParam(client)
 	}
 
 	setRedisClient(client)
