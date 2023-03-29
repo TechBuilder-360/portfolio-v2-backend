@@ -67,7 +67,7 @@ func main() {
 		}
 	}()
 
-	redis.NewClient(config.Instance.RedisURL, config.Instance.RedisPassword, config.Instance.Namespace)
+	redis.NewClient()
 
 	r := gin.New()
 	setupSystemRouteHandler(r)
