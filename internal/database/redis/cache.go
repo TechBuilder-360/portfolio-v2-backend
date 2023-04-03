@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"github.com/TechBuilder-360/portfolio-v2-backend/internal/config"
 	"github.com/redis/go-redis/v9"
 	log "github.com/sirupsen/logrus"
 	"time"
@@ -29,15 +30,16 @@ func WithTTL(t time.Duration) Param {
 }
 
 var redisClient *Client
-var ctx context.Context
+var ctx = context.Background()
 
 // NewClient is a client constructor.
-func NewClient(connectionURL, password, namespace string, params ...Param) *Client {
+func NewClient() *Client {
 	log.Info("connecting to redis client")
 
 	c := redis.NewClient(&redis.Options{
-		Addr:        connectionURL,
-		Password:    password, // no password set
+		Addr:        config.Instance.RedisURL,
+		Username:    config.Instance.RedisUsername,
+		Password:    config.Instance.RedisPassword, // no password set
 		DB:          0,
 		DialTimeout: 15 * time.Second,
 		MaxRetries:  10, // use default DB
@@ -52,11 +54,7 @@ func NewClient(connectionURL, password, namespace string, params ...Param) *Clie
 	client := &Client{
 		Client:    c,
 		ttl:       defaultExpirationTime,
-		namespace: namespace,
-	}
-
-	for _, applyParam := range params {
-		applyParam(client)
+		namespace: config.Instance.Namespace,
 	}
 
 	setRedisClient(client)

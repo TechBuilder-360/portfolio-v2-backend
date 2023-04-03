@@ -1,6 +1,7 @@
 package database
 
 import (
+	"github.com/TechBuilder-360/portfolio-v2-backend/internal/model"
 	"log"
 
 	"gorm.io/driver/postgres"
@@ -30,5 +31,15 @@ func DB() *gorm.DB {
 }
 
 func MigrateAll(db *gorm.DB) error {
-	return db.AutoMigrate()
+	return db.AutoMigrate(
+		model.Account{},
+		model.User{},
+		model.Education{},
+		model.Experience{},
+		model.Position{},
+		model.Project{},
+		model.Social{},
+		model.Skill{},
+		model.Certificate{},
+	)
 }

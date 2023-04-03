@@ -38,7 +38,7 @@ func sendMail(body *mail) error {
 
 func SendActivateMail(activate *ActivationMailRequest) error {
 	content := make(map[string]interface{})
-	content["username"] = activate.FullName
+	content["fullname"] = activate.FullName
 	content["appName"] = config.Instance.AppName
 	content["link"] = fmt.Sprintf("%s/auth/activate?token=%s&uid=%s", config.Instance.BaseURL, activate.Token, activate.UID)
 
