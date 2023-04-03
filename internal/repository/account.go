@@ -9,6 +9,7 @@ import (
 )
 
 type IAccountRepository interface {
+	GetById(ctx context.Context, id string) (*model.Account, error)
 	GetByEmail(email string, ctx context.Context) (*model.Account, error)
 	Create(account *model.Account, ctx context.Context) error
 	Update(account *model.Account, ctx context.Context) error
@@ -26,6 +27,19 @@ func (a *accountRepository) WithTx(tx *gorm.DB) IAccountRepository {
 // NewAccountRepository will a account repository
 func NewAccountRepository() IAccountRepository {
 	return &accountRepository{db: database.DB()}
+}
+
+func (a *accountRepository) GetById(ctx context.Context, id string) (*model.Account, error) {
+	var account model.Account
+	if err := a.db.WithContext(ctx).First(&account, "id = ?", id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+
+		return nil, errors.New("an error occurred")
+	}
+
+	return &account, nil
 }
 
 func (a *accountRepository) GetByEmail(email string, ctx context.Context) (*model.Account, error) {

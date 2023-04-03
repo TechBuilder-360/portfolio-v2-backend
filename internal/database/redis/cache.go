@@ -74,3 +74,15 @@ func (c *Client) Ping() error {
 	_, err := c.Client.Ping(ctx).Result()
 	return err
 }
+
+func (c *Client) Get(ctx context.Context, key string) (string, error) {
+	return c.Client.Get(ctx, key).Result()
+}
+
+func (c *Client) Set(ctx context.Context, key, value string, expiration time.Duration) error {
+	return c.Client.Set(ctx, key, value, expiration).Err()
+}
+
+func (c *Client) Del(ctx context.Context, key string) error {
+	return c.Client.Del(ctx, key).Err()
+}
