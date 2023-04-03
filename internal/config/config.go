@@ -14,22 +14,22 @@ const (
 var Instance *Config
 
 type Config struct {
-	AppName           string `env:"APP_NAME"`
-	Namespace         string `env:"NAMESPACE"`
-	Host              string `env:"HOST"`
-	Env               string `env:"ENVIRONMENT"`
-	SecretKey         string `env:"SECRET_KEY"`
-	TOKENLIFESPAN     uint   `env:"TOKEN_LIFE_SPAN"`
-	DbName            string `env:"DB_NAME"`
-	DbUser            string `env:"DB_USER"`
-	DbPass            string `env:"DB_PASS"`
-	DbHost            string `env:"DB_HOST"`
-	DbPort            uint   `env:"DB_PORT"`
-	DbURL             string `env:"DB_URL"`
-	RedisURL          string `env:"REDIS_URL"`
-	RedisPassword     string `env:"REDIS_PASSWORD"`
-	SendGridAPIKey    string `env:"SENDGRID_API_KEY"`
-	SendGridFromEmail string `env:"SEND_GRID_FROM_EMAIL"`
+	AppName           string  `env:"APP_NAME"`
+	Namespace         string  `env:"NAMESPACE"`
+	BaseURL           string  `env:"BASE_URL"`
+	Env               string  `env:"ENVIRONMENT"`
+	SecretKey         string  `env:"SECRET_KEY"`
+	TOKENLIFESPAN     uint    `env:"TOKEN_LIFE_SPAN"`
+	DbName            string  `env:"DB_NAME"`
+	DbUser            string  `env:"DB_USER"`
+	DbPass            string  `env:"DB_PASS"`
+	DbHost            string  `env:"DB_HOST"`
+	DbPort            uint    `env:"DB_PORT"`
+	DbURL             string  `env:"DB_URL"`
+	RedisURL          string  `env:"REDIS_URL"`
+	RedisPassword     string  `env:"REDIS_PASSWORD"`
+	SendGridAPIKey    *string `env:"SENDGRID_API_KEY"`
+	SendGridFromEmail *string `env:"SEND_GRID_FROM_EMAIL"`
 }
 
 func Load() {
