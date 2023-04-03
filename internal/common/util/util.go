@@ -8,6 +8,8 @@ import (
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"regexp"
 	"strings"
 )
@@ -86,4 +88,8 @@ func CustomErrorResponse(err error) *[]types.ApiError {
 		}
 	}
 	return nil
+}
+
+func CapitalizeFirstCharacter(s string) string {
+	return cases.Title(language.AmericanEnglish, cases.NoLower).String(strings.ToLower(strings.TrimSpace(s)))
 }

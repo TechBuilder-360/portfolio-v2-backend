@@ -14,6 +14,8 @@ import (
 type IAuthController interface {
 	Register(c *gin.Context)
 	Login(c *gin.Context)
+	RequestToken(ctx *gin.Context)
+	Activation(ctx *gin.Context)
 	RegisterRoutes(router *gin.Engine)
 }
 
@@ -35,6 +37,8 @@ func (ctl *authController) RegisterRoutes(router *gin.Engine) {
 
 	auth.POST("/register", ctl.Register)
 	auth.POST("/login", ctl.Login)
+	auth.GET("/request-token", ctl.RequestToken)
+	auth.GET("/activate", ctl.Activation)
 }
 
 // Register godoc
@@ -106,4 +110,66 @@ func (ctl *authController) Login(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, response.DataResponse("Successful", res))
+}
+
+// Activation godoc
+// @Summary      Account Activation
+// @Description  Account Activation
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Param        data   body    types.AccountActivation  true  "activation"
+// @Success      200  {object}  response.SuccessResp
+// @Router       /auth/activate [get]
+func (ctl *authController) Activation(ctx *gin.Context) {
+	var body types.AccountActivation
+
+	logger := log.WithFields(log.FromContext(ctx).Fields)
+	requestIdentifier := util.GenerateUUID()
+	logger.Info("Activation request")
+
+	ctx.Header(constant.RequestIdentifier, requestIdentifier)
+
+	if err := ctx.ShouldBindQuery(&body); err != nil {
+		logger.Error("error while parsing query params: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.ValidationErrorResponse(util.CustomErrorResponse(err)))
+		return
+	}
+
+	err := ctl.as.ActivateEmail(ctx, body, logger)
+
+	if err != nil {
+		logger.Error("error while login: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, response.SuccessResponse("Successful"))
+}
+
+// RequestToken godoc
+// @Summary      Request activation mail
+// @Description  Request activation mail
+// @Tags         auth
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  response.SuccessResp
+// @Router       /auth/request-token [get]
+func (ctl *authController) RequestToken(ctx *gin.Context) {
+
+	logger := log.WithFields(log.FromContext(ctx).Fields)
+	requestIdentifier := util.GenerateUUID()
+	logger.Info("Register request")
+
+	ctx.Header(constant.RequestIdentifier, requestIdentifier)
+
+	err := ctl.as.RequestToken(ctx, nil, logger)
+
+	if err != nil {
+		logger.Error("error while login: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
+		return
+	}
+
+	ctx.JSON(http.StatusCreated, response.SuccessResponse("Successful"))
 }

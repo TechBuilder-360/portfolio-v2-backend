@@ -87,7 +87,7 @@ func configureSwagger() {
 	docs.SwaggerInfo.Title = "ORIS API"
 	docs.SwaggerInfo.Description = "This documentation contains url path description for Oris APIs"
 	docs.SwaggerInfo.Version = "1.0"
-	docs.SwaggerInfo.Host = config.Instance.Host
+	docs.SwaggerInfo.Host = config.Instance.BaseURL
 	docs.SwaggerInfo.BasePath = "/v1"
 	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 }

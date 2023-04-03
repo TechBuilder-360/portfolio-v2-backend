@@ -11,8 +11,15 @@ type (
 	}
 
 	Authentication struct {
-		Email    string `json:"email" binding:"required"`
-		Password string `json:"password" binding:"required"`
+		Firstname string `json:"firstname" binding:"required"`
+		Lastname  string `json:"lastname" binding:"required"`
+		Email     string `json:"email" binding:"required"`
+		Password  string `json:"password" binding:"required"`
+	}
+
+	AccountActivation struct {
+		Token string `form:"token"`
+		UID   string `form:"uid"`
 	}
 
 	RegisterResponse struct {
@@ -44,3 +51,4 @@ type (
 
 type ENVIRONMENT string
 type AuthType string
+type CacheKey string

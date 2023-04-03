@@ -10,5 +10,10 @@ const (
 	AccountID     string = "account_id"
 	VerifiedEmail string = "verified_email"
 
+	UnexpectedError string = "an error occurred"
+
+	Activation types.CacheKey = "ACTIVATION-"
+	JWT        types.CacheKey = "JWT-"
+
 	EMAILPASSWORD types.AuthType = "EMAIL_PASSWORD"
 )

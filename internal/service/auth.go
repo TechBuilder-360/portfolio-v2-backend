@@ -3,12 +3,14 @@ package service
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/common/constant"
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/common/log"
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/common/types"
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/common/util"
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/config"
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/database/redis"
+	"github.com/TechBuilder-360/portfolio-v2-backend/internal/infrastructure/sendgrid"
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/model"
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/repository"
 	"github.com/golang-jwt/jwt/v5"
@@ -18,10 +20,10 @@ import (
 type IAuthService interface {
 	RegisterUser(ctx context.Context, body types.Authentication, log log.Entry) (*types.RegisterResponse, error)
 	Login(ctx context.Context, body types.Authentication, log log.Entry) (*types.LoginResponse, error)
-	//ActivateEmail(token string, uid string, log *log.Entry) error
-	//GenerateJWT(userID string) (*types.Authentication, error)
-	//ValidateToken(encodedToken string) (*jwt.Token, error)
-	//RequestToken(body *types.EmailRequest, logger *log.Entry) error
+	ActivateEmail(ctx context.Context, body types.AccountActivation, log log.Entry) error
+	GenerateJWT(account *model.Account) (*types.Token, error)
+	ValidateToken(encodedToken string) (*jwt.Token, error)
+	RequestToken(ctx context.Context, account *model.Account, logger log.Entry) error
 	//RefreshUserToken(body types.RefreshTokenRequest, token string, logger *log.Entry) (*types.Authentication, error)
 }
 
@@ -60,7 +62,7 @@ func (a *authService) GenerateJWT(account *model.Account) (*types.Token, error) 
 
 	ctx := context.Background()
 	rt := util.GenerateUUID()
-	err = a.cache.Set(ctx, account.ID, rt, (time.Hour*24)*7).Err()
+	err = a.cache.Set(ctx, fmt.Sprintf("%s%s", constant.JWT, account.ID), rt, (time.Hour*24)*7)
 	if err != nil {
 		log.Error(err.Error())
 	}
@@ -125,11 +127,17 @@ func (a *authService) RegisterUser(ctx context.Context, body types.Authenticatio
 	if err != nil {
 		return nil, errors.New("an error occurred please retry")
 	}
+	verified := false
+
+	if config.Instance.GetEnv() == config.SandboxEnv {
+		verified = true
+	}
 
 	account = &model.Account{
-		Email:    body.Email,
-		Password: hashedPassword,
-		AuthType: constant.EMAILPASSWORD,
+		Email:         body.Email,
+		Password:      &hashedPassword,
+		AuthType:      constant.EMAILPASSWORD,
+		EmailVerified: verified,
 	}
 
 	err = a.accountRepo.WithTx(tx).Create(account, ctx)
@@ -140,6 +148,8 @@ func (a *authService) RegisterUser(ctx context.Context, body types.Authenticatio
 	user := &model.User{
 		AccountId: account.ID,
 		Email:     account.Email,
+		FirstName: util.CapitalizeFirstCharacter(body.Firstname),
+		LastName:  util.CapitalizeFirstCharacter(body.Lastname),
 	}
 
 	err = a.userRepo.WithTx(tx).Create(user, ctx)
@@ -151,6 +161,34 @@ func (a *authService) RegisterUser(ctx context.Context, body types.Authenticatio
 	if err != nil {
 		log.Error(err.Error())
 		return nil, errors.New("an error occurred")
+	}
+
+	if config.Instance.GetEnv() != config.SandboxEnv {
+		var token string
+		token = util.GenerateUUID()
+
+		err = a.cache.Set(ctx, fmt.Sprintf("%s%s", constant.Activation, account.ID), token, time.Hour*24)
+		if err != nil {
+			log.Error("Error occurred when when token %s", err)
+		}
+
+		// Send Activate email
+		mailTemplate := &sendgrid.ActivationMailRequest{
+			Token:    token,
+			ToMail:   account.Email,
+			ToName:   fmt.Sprintf("%s %s", user.LastName, user.FirstName),
+			FullName: fmt.Sprintf("%s %s", user.LastName, user.FirstName),
+			UID:      account.ID,
+		}
+
+		err = sendgrid.SendActivateMail(mailTemplate)
+		if err != nil {
+			log.Error("Error occurred when sending activation email. %s", err.Error())
+		}
+	}
+	err = a.RequestToken(ctx, account, log)
+	if err != nil {
+		return nil, err
 	}
 
 	return &types.RegisterResponse{Email: account.Email}, nil
@@ -172,7 +210,7 @@ func (a *authService) Login(ctx context.Context, body types.Authentication, log 
 		return nil, errors.New("email address not registered")
 	}
 
-	if util.ComparePassword(body.Password, account.Password) == false {
+	if util.ComparePassword(body.Password, util.AddrToString(account.Password)) == false {
 		return nil, errors.New("incorrect password")
 	}
 
@@ -212,4 +250,82 @@ func (a *authService) Login(ctx context.Context, body types.Authentication, log 
 		},
 		HasProfile: user.HasProfile,
 	}, nil
+}
+
+func (a *authService) ActivateEmail(ctx context.Context, body types.AccountActivation, logger log.Entry) error {
+	account, err := a.accountRepo.GetById(ctx, body.UID)
+	if err != nil {
+		logger.Error(err.Error())
+		return errors.New(constant.UnexpectedError)
+	}
+	if account == nil {
+		logger.Error("account not found")
+		return errors.New("invalid activation link")
+	}
+
+	tk, err := a.cache.Get(ctx, fmt.Sprintf("%s%s", constant.Activation, account.ID))
+	if err != nil {
+		logger.Error(err.Error())
+		return errors.New(constant.UnexpectedError)
+	}
+
+	if tk != body.Token {
+		logger.Error("invalid activation token")
+		return errors.New("invalid activation link")
+	}
+
+	account.EmailVerified = true
+	err = a.accountRepo.Update(account, ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		return errors.New(constant.UnexpectedError)
+	}
+
+	go func() {
+		err = a.cache.Del(ctx, fmt.Sprintf("%s%s", constant.Activation, account.ID))
+		if err != nil {
+			logger.Error(err.Error())
+		}
+	}()
+
+	return nil
+
+}
+
+func (a *authService) RequestToken(ctx context.Context, account *model.Account, logger log.Entry) error {
+	if account.EmailVerified == true {
+		return errors.New("account is verified")
+	}
+
+	user, err := a.userRepo.GetByAccountID(account.ID, ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		return errors.New("user not found")
+	}
+
+	if config.Instance.GetEnv() != config.SandboxEnv {
+		var token string
+		token = util.GenerateUUID()
+
+		err := a.cache.Set(ctx, fmt.Sprintf("%s%s", constant.Activation, account.ID), token, time.Hour*24)
+		if err != nil {
+			logger.Error("Error occurred when when token %s", err)
+		}
+
+		// Send Activate email
+		mailTemplate := &sendgrid.ActivationMailRequest{
+			Token:    token,
+			ToMail:   account.Email,
+			ToName:   fmt.Sprintf("%s %s", user.LastName, user.FirstName),
+			FullName: fmt.Sprintf("%s %s", user.LastName, user.FirstName),
+			UID:      account.ID,
+		}
+
+		err = sendgrid.SendActivateMail(mailTemplate)
+		if err != nil {
+			logger.Error("Error occurred when sending activation email. %s", err.Error())
+		}
+	}
+
+	return nil
 }
