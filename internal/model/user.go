@@ -3,7 +3,7 @@ package model
 type User struct {
 	Base
 
-	AccountId   string `gorm:"not null"`
+	AccountId   string `gorm:"constraint:OnDelete:CASCADE;"`
 	FirstName   string `gorm:"type:varchar(50)"`
 	LastName    string `gorm:"type:varchar(50)"`
 	MiddleName  string `gorm:"type:varchar(50)"`

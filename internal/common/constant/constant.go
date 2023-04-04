@@ -9,6 +9,9 @@ const (
 	Authorized    string = "authorized"
 	AccountID     string = "account_id"
 	VerifiedEmail string = "verified_email"
+	AccountStatus string = "account_status"
+
+	//Account string = "account"
 
 	UnexpectedError string = "an error occurred"
 
@@ -16,4 +19,7 @@ const (
 	JWT        types.CacheKey = "JWT-"
 
 	EMAILPASSWORD types.AuthType = "EMAIL_PASSWORD"
+
+	Disabled types.AccountStatus = "DISABLED"
+	Active   types.AccountStatus = "ACTIVE"
 )

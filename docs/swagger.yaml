@@ -7,7 +7,30 @@ definitions:
       status:
         type: boolean
     type: object
+  types.AccountActivation:
+    properties:
+      token:
+        type: string
+      uid:
+        type: string
+    type: object
   types.Authentication:
+    properties:
+      email:
+        type: string
+      firstname:
+        type: string
+      lastname:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - firstname
+    - lastname
+    - password
+    type: object
+  types.LoginRequest:
     properties:
       email:
         type: string
@@ -70,6 +93,28 @@ info:
   title: ORIS API
   version: "1.0"
 paths:
+  /auth/activate:
+    get:
+      consumes:
+      - application/json
+      description: Account Activation
+      parameters:
+      - description: activation
+        in: body
+        name: data
+        required: true
+        schema:
+          $ref: '#/definitions/types.AccountActivation'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResp'
+      summary: Account Activation
+      tags:
+      - auth
   /auth/login:
     post:
       consumes:
@@ -81,7 +126,7 @@ paths:
         name: data
         required: true
         schema:
-          $ref: '#/definitions/types.Authentication'
+          $ref: '#/definitions/types.LoginRequest'
       produces:
       - application/json
       responses:
@@ -122,6 +167,21 @@ paths:
                   $ref: '#/definitions/types.RegisterResponse'
               type: object
       summary: registration
+      tags:
+      - auth
+  /auth/request-token:
+    post:
+      consumes:
+      - application/json
+      description: Request activation mail
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.SuccessResp'
+      summary: Request activation mail
       tags:
       - auth
 swagger: "2.0"
