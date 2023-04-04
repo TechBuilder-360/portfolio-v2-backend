@@ -3,6 +3,24 @@ on:
   push:
     branches:
       - main
+env:
+  APP_NAME: ${{ env.APP_NAME }}
+  NAMESPACE: ${{ env.NAMESPACE }}
+  BASE_URL: ${{ env.BASE_URL }}
+  ENVIRONMENT: ${{ env.ENVIRONMENT }}
+  SECRET_KEY: ${{ env.SECRET_KEY }}
+  TOKEN_LIFE_SPAN: ${{ env.TOKEN_LIFE_SPAN }}
+  DB_NAME: ${{ env.DB_NAME }}
+  DB_USER: ${{ env.DB_USER }}
+  DB_PASS: ${{ env.DB_PASS }}
+  DB_HOST: ${{ env.DB_HOST }}
+  DB_PORT: ${{ env.DB_PORT }}
+  DB_URL: ${{ env.DB_URL }}
+  REDIS_URL: ${{ env.REDIS_URL }}
+  REDIS_PASSWORD: ${{ env.REDIS_PASSWORD }}
+  REDIS_USERNAME: ${{ env.REDIS_USERNAME }}
+  SENDGRID_API_KEY: ${{ env.SENDGRID_API_KEY }}
+  SEND_GRID_FROM_EMAIL: ${{ env.SEND_GRID_FROM_EMAIL }}
 jobs:
   deploy:
     name: Deploy app
