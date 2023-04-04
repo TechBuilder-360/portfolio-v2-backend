@@ -24,3 +24,22 @@ processes = []
   [[services.ports]]
     handlers = ["tls", "http"]
     port = 443
+
+[build.args]
+      APP_NAME=$vars.APP_NAME
+      NAMESPACE=$vars.NAMESPACE
+      BASE_URL=$vars.BASE_URL
+      ENVIRONMENT=$vars.ENVIRONMENT
+      SECRET_KEY=$vars.SECRET_KEY
+      TOKEN_LIFE_SPAN=$vars.TOKEN_LIFE_SPAN
+      DB_NAME=$vars.DB_NAME
+      DB_USER=$vars.DB_USER
+      DB_PASS=$vars.DB_PASS
+      DB_HOST=$vars.DB_HOST
+      DB_PORT=$vars.DB_PORT
+      DB_URL=$vars.DB_URL
+      REDIS_URL=$vars.REDIS_URL
+      REDIS_PASSWORD=$vars.REDIS_PASSWORD
+      REDIS_USERNAME=$vars.REDIS_USERNAME
+      SENDGRID_API_KEY=$vars.SENDGRID_API_KEY
+      SEND_GRID_FROM_EMAIL=$vars.SEND_GRID_FROM_EMAIL
