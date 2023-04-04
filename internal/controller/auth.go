@@ -5,6 +5,7 @@ import (
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/common/log"
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/common/types"
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/common/util"
+	"github.com/TechBuilder-360/portfolio-v2-backend/internal/middleware"
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/response"
 	"github.com/TechBuilder-360/portfolio-v2-backend/internal/service"
 	"github.com/gin-gonic/gin"
@@ -16,11 +17,23 @@ type IAuthController interface {
 	Login(c *gin.Context)
 	RequestToken(ctx *gin.Context)
 	Activation(ctx *gin.Context)
+	ChangePassword(ctx *gin.Context)
+	UpdateAccountStatus(ctx *gin.Context)
 	RegisterRoutes(router *gin.Engine)
 }
 
 type authController struct {
 	as service.IAuthService
+}
+
+func (ctl *authController) ChangePassword(ctx *gin.Context) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (ctl *authController) UpdateAccountStatus(ctx *gin.Context) {
+	//TODO implement me
+	panic("implement me")
 }
 
 // NewAuthController instantiates Auth Controller
@@ -37,7 +50,7 @@ func (ctl *authController) RegisterRoutes(router *gin.Engine) {
 
 	auth.POST("/register", ctl.Register)
 	auth.POST("/login", ctl.Login)
-	auth.GET("/request-token", ctl.RequestToken)
+	auth.GET("/request-token", middleware.PartialAuth(), ctl.RequestToken)
 	auth.GET("/activate", ctl.Activation)
 }
 
@@ -83,11 +96,11 @@ func (ctl *authController) Register(ctx *gin.Context) {
 // @Tags         auth
 // @Accept       json
 // @Produce      json
-// @Param        data   body    types.Authentication  true  "login"
+// @Param        data   body    types.LoginRequest  true  "login"
 // @Success      200  {object}  response.SuccessResp{Data=types.LoginResponse}
 // @Router       /auth/login [post]
 func (ctl *authController) Login(ctx *gin.Context) {
-	var body types.Authentication
+	var body types.LoginRequest
 
 	logger := log.WithFields(log.FromContext(ctx).Fields)
 	requestIdentifier := util.GenerateUUID()
@@ -154,7 +167,7 @@ func (ctl *authController) Activation(ctx *gin.Context) {
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  response.SuccessResp
-// @Router       /auth/request-token [get]
+// @Router       /auth/request-token [post]
 func (ctl *authController) RequestToken(ctx *gin.Context) {
 
 	logger := log.WithFields(log.FromContext(ctx).Fields)
@@ -163,10 +176,17 @@ func (ctl *authController) RequestToken(ctx *gin.Context) {
 
 	ctx.Header(constant.RequestIdentifier, requestIdentifier)
 
-	err := ctl.as.RequestToken(ctx, nil, logger)
+	account, err := middleware.ExtractAccount(ctx)
+	if err != nil {
+		logger.Error("error while  requesting activation token: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
+		return
+	}
+
+	err = ctl.as.RequestToken(ctx, account, logger)
 
 	if err != nil {
-		logger.Error("error while login: %v", err)
+		logger.Error("error while requesting activation token: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.ErrorResponse(err.Error()))
 		return
 	}

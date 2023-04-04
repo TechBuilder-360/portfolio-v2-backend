@@ -8,10 +8,11 @@ import (
 type Account struct {
 	Base
 
-	UserName      string         `gorm:"type:varchar(50)"`
-	Email         string         `gorm:"type:varchar(150)"`
-	Password      *string        `gorm:"type:varchar(255)"`
-	AuthType      types.AuthType `gorm:"type:varchar(150)"`
-	EmailVerified bool           `gorm:"default:false;<-:create"`
+	UserName      string              `gorm:"type:varchar(50)"`
+	Email         string              `gorm:"type:varchar(150)"`
+	Password      *string             `gorm:"type:varchar(255)"`
+	AuthType      types.AuthType      `gorm:"type:varchar(150)"`
+	EmailVerified bool                `gorm:"default:false"`
+	Status        types.AccountStatus `gorm:"default:ACTIVE"`
 	LastLogin     time.Time
 }

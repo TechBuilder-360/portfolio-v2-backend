@@ -25,6 +25,40 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/activate": {
+            "get": {
+                "description": "Account Activation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Account Activation",
+                "parameters": [
+                    {
+                        "description": "activation",
+                        "name": "data",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/types.AccountActivation"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.SuccessResp"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Login User",
@@ -45,7 +79,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/types.Authentication"
+                            "$ref": "#/definitions/types.LoginRequest"
                         }
                     }
                 ],
@@ -116,6 +150,29 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/auth/request-token": {
+            "post": {
+                "description": "Request activation mail",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Request activation mail",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/response.SuccessResp"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -131,7 +188,41 @@ const docTemplate = `{
                 }
             }
         },
+        "types.AccountActivation": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string"
+                },
+                "uid": {
+                    "type": "string"
+                }
+            }
+        },
         "types.Authentication": {
+            "type": "object",
+            "required": [
+                "email",
+                "firstname",
+                "lastname",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "firstname": {
+                    "type": "string"
+                },
+                "lastname": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "types.LoginRequest": {
             "type": "object",
             "required": [
                 "email",

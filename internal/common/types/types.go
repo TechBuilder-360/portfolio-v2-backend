@@ -17,6 +17,11 @@ type (
 		Password  string `json:"password" binding:"required"`
 	}
 
+	LoginRequest struct {
+		Email    string `json:"email" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}
+
 	AccountActivation struct {
 		Token string `form:"token"`
 		UID   string `form:"uid"`
@@ -52,3 +57,4 @@ type (
 type ENVIRONMENT string
 type AuthType string
 type CacheKey string
+type AccountStatus string

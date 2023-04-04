@@ -19,7 +19,7 @@ import (
 
 type IAuthService interface {
 	RegisterUser(ctx context.Context, body types.Authentication, log log.Entry) (*types.RegisterResponse, error)
-	Login(ctx context.Context, body types.Authentication, log log.Entry) (*types.LoginResponse, error)
+	Login(ctx context.Context, body types.LoginRequest, log log.Entry) (*types.LoginResponse, error)
 	ActivateEmail(ctx context.Context, body types.AccountActivation, log log.Entry) error
 	GenerateJWT(account *model.Account) (*types.Token, error)
 	ValidateToken(encodedToken string) (*jwt.Token, error)
@@ -54,6 +54,7 @@ func (a *authService) GenerateJWT(account *model.Account) (*types.Token, error) 
 	claims[constant.Authorized] = true
 	claims[constant.AccountID] = account.ID
 	claims[constant.VerifiedEmail] = account.EmailVerified
+	claims[constant.AccountStatus] = account.Status
 
 	tokenString, err := token.SignedString(SecretKey)
 	if err != nil {
@@ -186,15 +187,11 @@ func (a *authService) RegisterUser(ctx context.Context, body types.Authenticatio
 			log.Error("Error occurred when sending activation email. %s", err.Error())
 		}
 	}
-	err = a.RequestToken(ctx, account, log)
-	if err != nil {
-		return nil, err
-	}
 
 	return &types.RegisterResponse{Email: account.Email}, nil
 }
 
-func (a *authService) Login(ctx context.Context, body types.Authentication, log log.Entry) (*types.LoginResponse, error) {
+func (a *authService) Login(ctx context.Context, body types.LoginRequest, log log.Entry) (*types.LoginResponse, error) {
 	body.Email = util.ToLower(body.Email)
 	if util.ValidateEmailAddress(body.Email) == false {
 		log.Error("invalid email address %s", body.Email)
@@ -214,9 +211,9 @@ func (a *authService) Login(ctx context.Context, body types.Authentication, log 
 		return nil, errors.New("incorrect password")
 	}
 
-	if account.EmailVerified == false {
-		return nil, errors.New("account not verified")
-	}
+	//if account.EmailVerified == false {
+	//	return nil, errors.New("account not verified")
+	//}
 
 	user, err := a.userRepo.GetByAccountID(account.ID, ctx)
 	if err != nil {
@@ -261,6 +258,10 @@ func (a *authService) ActivateEmail(ctx context.Context, body types.AccountActiv
 	if account == nil {
 		logger.Error("account not found")
 		return errors.New("invalid activation link")
+	}
+
+	if account.EmailVerified {
+		return errors.New("account has been verified")
 	}
 
 	tk, err := a.cache.Get(ctx, fmt.Sprintf("%s%s", constant.Activation, account.ID))
