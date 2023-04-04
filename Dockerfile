@@ -1,0 +1,28 @@
+FROM golang:1.19.1-alpine
+
+RUN mkdir /app
+
+ADD . /app
+
+WORKDIR /app
+
+RUN go build -o main .
+
+#ENV APP_NAME=oris
+#ENV NAMESPACE=${APP_NAME}
+#ENV HOST="http//localhost:8080"
+#ENV ENVIRONMENT=sandbox
+#ENV SECRET_KEY=e1f89ed830abff455cd0351b4f7d51e28bd39ca26a3dfcb814fb3d18be504e1e
+#ENV TOKEN_LIFE_SPAN=300
+#ENV DB_NAME=oris
+#ENV DB_USER=postgres
+#ENV DB_PASSWORD=mysecretpassword
+#ENV DB_HOST=0.0.0.0
+#ENV DB_PORT=5432
+#ENV DB_URL=postgres://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+#ENV REDIS_URL=localhost:${REDIS_PORT}
+#ENV REDIS_PASSWORD=6379
+#ENV SENDGRID_API_KEY=""
+#ENV SEND_GRID_FROM_EMAIL=""
+
+CMD ["/app/main"]
