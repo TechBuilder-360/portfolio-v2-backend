@@ -26,9 +26,9 @@ processes = []
     port = 443
 
 [env]
-    APP_NAME="${vars.APP_NAME}"
+    APP_NAME= "{ vars.APP_NAME }"
     NAMESPACE="${vars.NAMESPACE}"
-    BASE_URL="${vars.BASE_URL}"
+    BASE_URL="{vars.BASE_URL}"
     ENVIRONMENT="${vars.ENVIRONMENT}"
     SECRET_KEY="${vars.SECRET_KEY}"
     TOKEN_LIFE_SPAN="${vars.TOKEN_LIFE_SPAN}"
