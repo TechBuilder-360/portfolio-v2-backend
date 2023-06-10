@@ -10,6 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
+	"reflect"
 	"regexp"
 	"strings"
 )
@@ -76,13 +77,16 @@ func msgForTag(tag, param string) string {
 	return ""
 }
 
-func CustomErrorResponse(err error) *[]types.ApiError {
+func CustomErrorResponse(err error, args any) *[]types.ApiError {
 	if err != nil {
 		var ve validator.ValidationErrors
 		if errors.As(err, &ve) {
 			out := make([]types.ApiError, len(ve))
 			for i, fe := range ve {
-				out[i] = types.ApiError{fe.Field(), msgForTag(fe.Tag(), fe.Param())}
+				fieldName := fe.Field()
+				field, _ := reflect.TypeOf(args).FieldByName(fieldName)
+				fieldJSONName, _ := field.Tag.Lookup("json")
+				out[i] = types.ApiError{Field: fieldJSONName, Msg: msgForTag(fe.Tag(), fe.Param())}
 			}
 			return &out
 		}
