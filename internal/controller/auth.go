@@ -75,7 +75,7 @@ func (ctl *authController) Register(ctx *gin.Context) {
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		logger.Error("error while parsing request body: %v", err)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.ValidationErrorResponse(util.CustomErrorResponse(err)))
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.ValidationErrorResponse(util.CustomErrorResponse(err, body)))
 		return
 	}
 
@@ -110,7 +110,7 @@ func (ctl *authController) Login(ctx *gin.Context) {
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		logger.Error("error while parsing request body: %v", err)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.ValidationErrorResponse(util.CustomErrorResponse(err)))
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.ValidationErrorResponse(util.CustomErrorResponse(err, body)))
 		return
 	}
 
@@ -145,7 +145,7 @@ func (ctl *authController) Activation(ctx *gin.Context) {
 
 	if err := ctx.ShouldBindQuery(&body); err != nil {
 		logger.Error("error while parsing query params: %v", err)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.ValidationErrorResponse(util.CustomErrorResponse(err)))
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.ValidationErrorResponse(util.CustomErrorResponse(err, body)))
 		return
 	}
 
