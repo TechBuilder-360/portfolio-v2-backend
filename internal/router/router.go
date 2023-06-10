@@ -21,11 +21,12 @@ func SetUpRoutes(
 	generalController.RegisterRoutes(router)
 
 	v1 := router.Group("/v1")
+	//v1.Use(middleware.Logger())
 
 	// *****************
 	// Auth  ROUTES
 	// *****************
-	authController.RegisterRoutes(router)
+	authController.RegisterRoutes(v1)
 
 	// *****************
 	// TEST ROUTES {NOT FOR PRODUCTION}

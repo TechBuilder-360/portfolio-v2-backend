@@ -19,7 +19,7 @@ type IAuthController interface {
 	Activation(ctx *gin.Context)
 	ChangePassword(ctx *gin.Context)
 	UpdateAccountStatus(ctx *gin.Context)
-	RegisterRoutes(router *gin.Engine)
+	RegisterRoutes(router *gin.RouterGroup)
 }
 
 type authController struct {
@@ -43,10 +43,8 @@ func NewAuthController() IAuthController {
 	}
 }
 
-func (ctl *authController) RegisterRoutes(router *gin.Engine) {
-
-	v1 := router.Group("/v1")
-	auth := v1.Group("/auth")
+func (ctl *authController) RegisterRoutes(router *gin.RouterGroup) {
+	auth := router.Group("/auth")
 
 	auth.POST("/register", ctl.Register)
 	auth.POST("/login", ctl.Login)
@@ -66,9 +64,8 @@ func (ctl *authController) RegisterRoutes(router *gin.Engine) {
 func (ctl *authController) Register(ctx *gin.Context) {
 	var body types.Authentication
 
-	logger := log.WithFields(log.FromContext(ctx).Fields)
 	requestIdentifier := util.GenerateUUID()
-	//logger = logger.WithField(util.UserIdentifier, util.ExtractUserIdContext(ctx)).WithField(util.RequestIdentifier, requestIdentifier)
+	logger := log.WithFields(log.FromContext(ctx).Fields).WithField(constant.RequestIdentifier, requestIdentifier)
 	logger.Info("Register request")
 
 	ctx.Header(constant.RequestIdentifier, requestIdentifier)
@@ -102,11 +99,9 @@ func (ctl *authController) Register(ctx *gin.Context) {
 func (ctl *authController) Login(ctx *gin.Context) {
 	var body types.LoginRequest
 
-	logger := log.WithFields(log.FromContext(ctx).Fields)
 	requestIdentifier := util.GenerateUUID()
+	logger := log.WithFields(log.FromContext(ctx).Fields).WithField(constant.RequestIdentifier, requestIdentifier)
 	logger.Info("Register request")
-
-	ctx.Header(constant.RequestIdentifier, requestIdentifier)
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
 		logger.Error("error while parsing request body: %v", err)
@@ -137,8 +132,8 @@ func (ctl *authController) Login(ctx *gin.Context) {
 func (ctl *authController) Activation(ctx *gin.Context) {
 	var body types.AccountActivation
 
-	logger := log.WithFields(log.FromContext(ctx).Fields)
 	requestIdentifier := util.GenerateUUID()
+	logger := log.WithFields(log.FromContext(ctx).Fields).WithField(constant.RequestIdentifier, requestIdentifier)
 	logger.Info("Activation request")
 
 	ctx.Header(constant.RequestIdentifier, requestIdentifier)
@@ -170,8 +165,8 @@ func (ctl *authController) Activation(ctx *gin.Context) {
 // @Router       /auth/request-token [post]
 func (ctl *authController) RequestToken(ctx *gin.Context) {
 
-	logger := log.WithFields(log.FromContext(ctx).Fields)
 	requestIdentifier := util.GenerateUUID()
+	logger := log.WithFields(log.FromContext(ctx).Fields).WithField(constant.RequestIdentifier, requestIdentifier)
 	logger.Info("Register request")
 
 	ctx.Header(constant.RequestIdentifier, requestIdentifier)
