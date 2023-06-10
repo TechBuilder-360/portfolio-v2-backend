@@ -64,9 +64,6 @@ func (e *entry) Debug(format string, args ...interface{}) {
 }
 
 func (e *entry) Info(format string, args ...interface{}) {
-	//_, f, line, _ := runtime.Caller(1)
-	//e.l.l..File = f
-	//e.e.Caller.Line = line
 	e.log(LevelInfo, format, args...)
 }
 
