@@ -147,10 +147,10 @@ func (a *authService) RegisterUser(ctx context.Context, body types.Authenticatio
 	}
 
 	user := &model.User{
-		AccountId: account.ID,
+		AccountID: account.ID,
 		Email:     account.Email,
-		FirstName: util.CapitalizeFirstCharacter(body.Firstname),
-		LastName:  util.CapitalizeFirstCharacter(body.Lastname),
+		FirstName: util.CapitalizeFirstCharacter(body.FirstName),
+		LastName:  util.CapitalizeFirstCharacter(body.LastName),
 	}
 
 	err = a.userRepo.WithTx(tx).Create(user, ctx)
